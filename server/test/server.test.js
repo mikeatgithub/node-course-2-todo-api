@@ -1,12 +1,13 @@
 const expect  = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 const {app}   = require('./../server');
 const {Todo}  = require('./../models/todo');
 
 const todos = [
-    {text: 'First test todo'},
-    {text: 'Second test todo'}
+    {_id: new ObjectID(), text: 'First test todo'},
+    {_id: new ObjectID(), text: 'Second test todo'}
 ];
 
 // This is explained in video 74 and on
@@ -71,6 +72,35 @@ describe('GET /todos', () => {
             .expect((response) => {
                 expect(response.body.todos.length).toBe(2);
             })
+            .end(done);
+    });
+});
+
+describe('Get /todos/:id', () => {
+    
+    it('Should return todo doc for given id', (done) => {   // Since async we need done() callback
+         request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((response) => {
+                expect(response.body.todo.text).toBe(todos[0].text)
+            })
+            .end(done);
+    });
+
+    it('Should return 404 1f todo not found.', (done) => {
+        // id = new ObjectID();
+        request(app)
+            // Create a new object ID
+            .get(`/todos/${new ObjectID().toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should return 404 for non-object ids', (done) => {
+        request(app)
+            .get(`/todos/123abc`)   // 123abc is non-object object id
+            .expect(404)
             .end(done);
     });
 });
