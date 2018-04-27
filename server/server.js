@@ -9,16 +9,24 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
-    console.log(req.body);
+app.post('/todos', (request, response) => {
+    console.log(request.body);
     // return;
 
-    var todo = new Todo({ text: req.body.text });
+    var todo = new Todo({ text: request.body.text });
 
     todo.save().then((doc) => {
-        res.send(doc);
+        response.send(doc);
     }, (e) => {
-        res.status(400).send(e);
+        response.status(400).send(e);
+    });
+});
+
+app.get('/todos', (request, response) => {
+    Todo.find().then((todos) => {
+        response.send({todos});
+    }, (e) => {
+        response.status(400).send(e);
     });
 });
 
