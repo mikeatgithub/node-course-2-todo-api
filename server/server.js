@@ -8,6 +8,7 @@ const {Todo}     = require('./models/todo');
 const {User}     = require('./models/user');
 
 const app = express();
+const port = process.env.PORT || 3000;  // For Heroku hosting port 
 
 app.use(bodyParser.json());
 
@@ -53,6 +54,32 @@ app.get('/todos/:id', (request, response) => {
 
 });
 
-app.listen(3000, () => {console.log('Server listening on port 3000...\n');});
+app.delete('/todos/:id', (request, response) => {
+    // get the id
+    let id = request.params.id;
+
+    // Validate the id
+    if (!ObjectID.isValid(id)) {
+        response.status(404).send();
+    }
+
+    Todo.findByIdAndRemove(id).then((todo) => {
+        // If doc was not found then say so to the user
+        if (!todo) {
+            return response.status(404).send();
+        }
+
+        // If we get here then doc was found and
+        // it was removed. Say that to the user.
+        response.send(todo);
+
+    })
+    // Now catch any possible errors.
+    .catch((e) => {
+        response.status(400).send();
+    });
+});
+
+app.listen(port, () => {console.log(`Server listening on port ${port}...\n`);});
 
 module.exports = {app};
