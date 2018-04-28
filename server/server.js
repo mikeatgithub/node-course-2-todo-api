@@ -71,7 +71,7 @@ app.delete('/todos/:id', (request, response) => {
 
         // If we get here then doc was found and
         // it was removed. Say that to the user.
-        response.send(todo);
+        response.send({todo});
 
     })
     // Now catch any possible errors.
