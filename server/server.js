@@ -95,7 +95,7 @@ app.patch('/todos/:id', (request, response) => {
     if (!ObjectID.isValid(id)) {
         return response.status(404).send();
     }
-    console.log('_.isBoolean(body.completed): ', _.isBoolean(body.completed));
+
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime();        // # of ms from 1-1-1970
     } else {
