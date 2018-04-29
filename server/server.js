@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express    = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
@@ -43,7 +44,7 @@ app.get('/todos/:id', (request, response) => {
 
     Todo.findById(id).then((todo) => {
         if (!todo) {
-            response.status(404).send();
+            return response.status(404).send();
         }
 
         // We found the id:
@@ -60,7 +61,7 @@ app.delete('/todos/:id', (request, response) => {
 
     // Validate the id
     if (!ObjectID.isValid(id)) {
-        response.status(404).send();
+        return response.status(404).send();
     }
 
     Todo.findByIdAndRemove(id).then((todo) => {
@@ -78,6 +79,40 @@ app.delete('/todos/:id', (request, response) => {
     .catch((e) => {
         response.status(400).send();
     });
+});
+
+// Patch or update todos
+app.patch('/todos/:id', (request, response) => {
+
+    let id = request.params.id;
+
+    // Create a body object with the subset of 
+    // the request.body. We don't want to allow the
+    // user to change anything they want.
+    let body = _.pick(request.body, ['text', 'completed']);
+
+    // Validate the id
+    if (!ObjectID.isValid(id)) {
+        return response.status(404).send();
+    }
+    console.log('_.isBoolean(body.completed): ', _.isBoolean(body.completed));
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();        // # of ms from 1-1-1970
+    } else {
+        body.completed   = false;
+        body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
+        .then((todo) => {
+            if (!todo) {
+                return response.status(404).send();
+            }
+            response.send({todo});
+        })
+        .catch((e) => {
+            response.status(400).send();
+        });
 });
 
 app.listen(port, () => {console.log(`Server listening on port ${port}...\n`);});
