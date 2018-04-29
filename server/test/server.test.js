@@ -22,7 +22,7 @@ beforeEach((done) => {
 
 describe('POST /todos', () => {
 
-    it('Should creat a new todo', (done) => {
+    it('Should create a new todo', (done) => {
         let text = 'Test to do text';
         
         request(app)
