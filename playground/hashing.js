@@ -2,10 +2,11 @@ const jwt      = require('jsonwebtoken');
 // const {SHA256} = require('crypto-js');
 
 let data = {id: 10}
-let token = jwt.sign(data, '123abc');
+let salt = '123abc';
+let token = jwt.sign(data, salt);
 console.log(token);
 
-let decode = jwt.verify(token, '123abc');
+let decode = jwt.verify(token, salt);
 console.log('decode: ', decode);
 
 

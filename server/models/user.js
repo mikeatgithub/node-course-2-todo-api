@@ -43,9 +43,9 @@ UserSchema.methods.toJSON = function () {
 }
 
 UserSchema.methods.generateAuthToken = function () {
-    let salt   = '123abc';
     let user   = this;
     let access = 'auth';
+    let salt   = '123abc';
     
     let token  = jwt.sign({
         _id:user._id.toHexString(),
@@ -58,6 +58,29 @@ UserSchema.methods.generateAuthToken = function () {
     return user.save().then(() => {return token});
 }
 
+UserSchema.statics.findByToken = function (token) {
+    let salt = '123abc';
+    let User = this;
+    let decodedData = undefined;
+
+    try {
+        decodedData = jwt.verify(token, salt);
+    } catch (error) {
+        // return new Promise((resolve, reject) => {
+        //     reject();
+        // });
+
+        // The same as above except much easier
+        return Promise.reject();
+    }
+
+    // We will return a promise to be chained in the calling routine
+    return User.findOne({
+        '_id':           decodedData._id,
+        'tokens.token':  token, // tokens is the tokens array defined above
+        'tokens.access': 'auth' // quotes are needed because we a dot in the moddle
+    });
+}
 
 let User = mongoose.model('User', UserSchema);
 
