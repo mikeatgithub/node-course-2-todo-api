@@ -146,6 +146,21 @@ app.get('/users/me', authenticate, (request, response) => {
     response.send(request.user);
 });
 
+// POST /users/login {email, password}
+app.post('/users/login', (request, response) => {
+    let body = _.pick(request.body, ['email', 'password']);
+    console.log(`email: ${body.email} --- password: ${body.password}`);
+    
+    User.findByCredentials(body.email, body.password).then((user) => {
+        // response.send(user);
+        user.generateAuthToken().then((token) => {
+            response.header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        response.status(400).send();
+    });
+});
+
 app.listen(port, () => {console.log(`Server listening on port ${port}...\n`);});
 
 module.exports = {app};
