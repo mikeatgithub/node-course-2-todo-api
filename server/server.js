@@ -149,7 +149,6 @@ app.get('/users/me', authenticate, (request, response) => {
 // POST /users/login {email, password}
 app.post('/users/login', (request, response) => {
     let body = _.pick(request.body, ['email', 'password']);
-    console.log(`email: ${body.email} --- password: ${body.password}`);
     
     User.findByCredentials(body.email, body.password).then((user) => {
         // response.send(user);
