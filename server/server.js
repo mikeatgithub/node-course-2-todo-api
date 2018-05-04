@@ -160,6 +160,16 @@ app.post('/users/login', (request, response) => {
     });
 });
 
+app.delete('/users/me/token', authenticate, (request, response) => {
+    request.user.removeToken(request.token).then(() => {
+        // RESOLVE 
+        response.status(200).send();
+    }, () => {
+        // REJECT function
+        response.status(400).send();
+    }).catch(() => {});
+});
+
 app.listen(port, () => {console.log(`Server listening on port ${port}...\n`);});
 
 module.exports = {app};
