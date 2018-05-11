@@ -26,11 +26,14 @@ const port = process.env.PORT;              // Port is set abouve now
 
 app.use(bodyParser.json());
 
-app.post('/todos', (request, response) => {
+// To make this private we use "authenticate"
+app.post('/todos', authenticate, (request, response) => {
     console.log(request.body);
     // return;
 
-    var todo = new Todo({ text: request.body.text });
+    let todo = new Todo({
+        text: request.body.text, _creator: request.user._id
+    });
 
     todo.save().then((doc) => {
         response.send(doc);
@@ -39,8 +42,8 @@ app.post('/todos', (request, response) => {
     });
 });
 
-app.get('/todos', (request, response) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (request, response) => {
+    Todo.find({ _creator: request.user._id}).then((todos) => {
         response.send({todos});
     }, (e) => {
         response.status(400).send(e);
@@ -48,14 +51,17 @@ app.get('/todos', (request, response) => {
 });
 
 // GET /todos/12345
-app.get('/todos/:id', (request, response) => {
+app.get('/todos/:id', authenticate, (request, response) => {
     let id = request.params.id;
 
     if (!ObjectID.isValid(id)) {
         return response.status(404).send(); // send no error to browser
     }
 
-    Todo.findById(id).then((todo) => {
+    Todo.findOne({
+        _id: id,
+        _creator: request.user._id
+    }).then((todo) => {
         if (!todo) {
             return response.status(404).send();
         }
@@ -68,7 +74,7 @@ app.get('/todos/:id', (request, response) => {
 
 });
 
-app.delete('/todos/:id', (request, response) => {
+app.delete('/todos/:id', authenticate, (request, response) => {
     // get the id
     let id = request.params.id;
 
@@ -77,7 +83,10 @@ app.delete('/todos/:id', (request, response) => {
         return response.status(404).send();
     }
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    Todo.findOneAndRemove({
+        _id: id,
+        _creator: request.user._id
+    }).then((todo) => {
         // If doc was not found then say so to the user
         if (!todo) {
             return response.status(404).send();
@@ -95,7 +104,7 @@ app.delete('/todos/:id', (request, response) => {
 });
 
 // Patch or update todos
-app.patch('/todos/:id', (request, response) => {
+app.patch('/todos/:id', authenticate, (request, response) => {
 
     let id = request.params.id;
 
@@ -116,7 +125,8 @@ app.patch('/todos/:id', (request, response) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
+    Todo.findOneAndUpdate({_id: id, _creator: request.user._id},
+                            {$set: body}, {new: true})
         .then((todo) => {
             if (!todo) {
                 return response.status(404).send();
